@@ -87,6 +87,7 @@ int main() {
                     }                    
 
                     exit(0);
+                    break;
 
                 default: /* empty statement */;
                     /* TEMP CODE */
