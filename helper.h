@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <mqueue.h>
+#include <wait.h>
 
 #define MAXLEN 1019
 #define UINTMAXLEN 13

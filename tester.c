@@ -57,7 +57,7 @@ int main() {
             int count = 0;
             char word[MAXLEN];
 
-            mgd_t desc = mq_open(qName, O_WRONLY | O_CREAT, 0777, NULL);
+            mqd_t desc = mq_open(qName, O_WRONLY | O_CREAT, 0777, NULL);
             if (desc == (mqd_t) -1) {
                 syserr("Error in mq_open");
             }
@@ -91,7 +91,7 @@ int main() {
                 }
             }
 
-            mgd_t desc2 = mq_open(resultsQName, O_WRONLY | O_CREAT, 0777, NULL);
+            mqd_t desc2 = mq_open(resultsQName, O_WRONLY | O_CREAT, 0777, NULL);
             if (desc2 == (mqd_t) -1) {
                 syserr("Error in mq_open");
             }
@@ -122,7 +122,7 @@ int main() {
         default:
             char buffer[MAXLEN];
 
-            mgd_t desc = mq_open(resultsQName, O_RDONLY | O_CREAT, 0777, NULL);
+            mqd_t desc = mq_open(resultsQName, O_RDONLY | O_CREAT, 0777, NULL);
             if (desc == (mqd_t) -1) {
                 syserr("Error in mq_open");
             }
