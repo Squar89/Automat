@@ -17,6 +17,7 @@ int main() {
     /* testers list */
     bool endSignalReceived = false;
     int ret;
+    char buffer[MAXLEN];
 
     //forkuj, dziecko odbiera słowa i przekazuje je do run, rodzic odbiera odpowiedzi od run i przekazuje je do testerow
     //gdy dziecko dostanie ! to wysyła ! do run i konczy sie, run wie ze ma sie skonczyc i wysyla ! do glownego i konczy wszystkie pomniejsze run,
@@ -36,7 +37,6 @@ int main() {
 
                 case 0: /*empty statement */;
                     char word[MAXLEN];
-                    char buffer[MAXLEN];
                     const char *qName = "/validatorQ";
                     const char *tempName = "/tempQ";
 
@@ -87,11 +87,9 @@ int main() {
                     }                    
 
                     exit(0);
-                    break;
 
                 default: /* empty statement */;
                     /* TEMP CODE */
-                    char buffer[MAXLEN];
                     const char *tempName = "/tempQ";
 
                     mqd_t tempDesc = mq_open(tempName, O_RDONLY | O_CREAT, 0777, NULL);
