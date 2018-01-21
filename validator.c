@@ -63,7 +63,7 @@ int main() {
                             endSignalReceived = true;
                             //wyślij do run "!" TODO
                             /* TEMP CODE */
-                            ret = mq_send(tempDesc, buffer, strlen(buffer), 1);
+                            ret = mq_send(tempDesc, buffer, strlen(buffer) + 1, 1);
                             if (ret) {
                                 syserr("Error in mq_send: ");
                             }
@@ -72,7 +72,7 @@ int main() {
                         else {
                             //przekaz do run słowo i pid testera TODO
                             /* TEMP CODE */
-                            ret = mq_send(tempDesc, buffer, strlen(buffer), 1);
+                            ret = mq_send(tempDesc, buffer, strlen(buffer) + 1, 1);
                             if (ret) {
                                 syserr("Error in mq_send: ");
                             }
@@ -80,7 +80,7 @@ int main() {
                         }
                     }
                     
-                    if (mq_close(desc)) {
+                    if (mq_unlink(qName)) {
                         syserr("Error in close:");
                     }
 
@@ -113,14 +113,14 @@ int main() {
                         else {
                             int testerPid = strtol(buffer, NULL, 0);
 
-                            char *msg = (char*) malloc(MAXLEN * sizeof(char));
+                            char *msg = (char*) malloc((2 + strlen(strchr(buffer, ':') + 1) + 1) * sizeof(char));
                             ret = sprintf(msg, "A|%s", strchr(buffer, ':') + 1);
                             if (ret < 0) {
                                 syserr("Error in sprintf: ");
                             }
 
                             /* TODO zrób to lepiej */
-                            char *resultsQ = (char*) malloc(QNAMEMAXLEN * sizeof(char));
+                            char *resultsQ = (char*) malloc((9 + PIDMAXLEN + 1) * sizeof(char));
                             ret = sprintf(resultsQ, "/results:%d", testerPid);
                             if (ret < 0) {
                                 free(msg);
@@ -128,18 +128,22 @@ int main() {
                                 syserr("Error in sprintf: ");
                             }
 
-                            mqd_t resultDesc = mq_open(resultsQ, O_WRONLY | O_CREAT, 0777, NULL);//TODO aktualnie nigdzie jej nie zamykasz
+                            mqd_t resultDesc = mq_open(resultsQ, O_WRONLY | O_CREAT, 0777, NULL);
                             if (resultDesc == (mqd_t) -1) {
                                 free(msg);
                                 free(resultsQ);
                                 syserr("Error in mq_open");
                             }
 
-                            ret = mq_send(resultDesc, msg, strlen(msg), 1);
+                            ret = mq_send(resultDesc, msg, strlen(msg) + 1, 1);
                             free(msg);
                             free(resultsQ);
                             if (ret) {
                                 syserr("Error in mq_send: ");
+                            }
+
+                            if (mq_close(resultDesc)) {
+                                syserr("Error in close:");
                             }
                         }
                         /* TEMP CODE */
@@ -152,7 +156,7 @@ int main() {
                     }
 
                     /* TEMP CODE */
-                    if (mq_close(tempDesc2)) {
+                    if (mq_unlink(tempName)) {
                         syserr("Error in close:");
                     }
                     /* TEMP CODE */

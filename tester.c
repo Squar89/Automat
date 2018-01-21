@@ -32,23 +32,6 @@ int main() {
         syserr("Error in sprintf: ");
     }
 
-    /*
-    rozdziel sie
-        error:
-
-        syn:
-            wczytuj i wysylaj do validator, licz liczbe wyslanych slow
-            
-        ojciec:
-            czekaj na wyrok validatora
-            jesli dostales ! to wyslij sygnal do syna
-
-            zwieksz liczbe otrzymanych
-            wypisz ostatni wyrok
-
-            jesli syn wysle liczbe wczytanych linii to czekaj na tyle odpowiedzi a potem sie skoncz
-    */
-
     switch (childPid = fork()) {
         case -1:
             syserr("Error in fork\n");
@@ -71,7 +54,7 @@ int main() {
                     finish = true;
                 }
                 else if (strncmp(word, "!", 2)) {
-                    ret = mq_send(validatorDesc, word, strlen(word), 1);
+                    ret = mq_send(validatorDesc, word, strlen(word) + 1, 1);
                     if (ret) {
                         syserr("Error in mq_send: ");
                     }
@@ -79,13 +62,13 @@ int main() {
                 else {
                     count++;
 
-                    char *msg = (char*) malloc(MAXLEN * sizeof(char));
+                    char *msg = (char*) malloc((PIDMAXLEN + 1 + strlen(word) + 1) * sizeof(char));
                     ret = sprintf(msg, "%d:%s", originPid, word);
                     if (ret < 0) {
                         syserr("Error in sprintf: ");
                     }
 
-                    ret = mq_send(validatorDesc, msg, strlen(msg), 1);
+                    ret = mq_send(validatorDesc, msg, strlen(msg) + 1, 1);
                     free(msg);
                     if (ret) {
                         syserr("Error in mq_send: ");
@@ -105,7 +88,7 @@ int main() {
                 syserr("Error in sprintf: ");
             }
 
-            ret = mq_send(countDesc, msg, strlen(msg), 1);
+            ret = mq_send(countDesc, msg, strlen(msg) + 1, 1);
             free(msg);
             if (ret) {
                 syserr("Error in mq_send\n");
@@ -129,7 +112,9 @@ int main() {
                 syserr("Error in mq_open");
             }
 
-            //ustaw sent na -1, received na 0, accepted na 0
+            result.received = 0;
+            result.sent = -1;
+            result.accepted = 0;
             while (!finish) {
                 /* "A|word" OR "N|word OR "!" OR "sent" */
                 ret = mq_receive(resultsDesc, buffer, MAXLEN, NULL);
@@ -144,26 +129,23 @@ int main() {
                 }
                 /* number of sent queries received */
                 else if (buffer[0] != 'A' && buffer[0] != 'N') {
-                    //ustaw sent na strtol(buffer, NULL, 0);
+                    result.sent = strtol(buffer, NULL, 0);
                 }
                 /* result of a query received */
                 else {
                     printf("%s %c\n", buffer + 2, buffer[0]);
-                    //increment received
+                    result.received++;
                     if (buffer[0] == 'A') {
-                        //increment accepted
+                        result.accepted++;
                     }
                 }
 
-                /* TODO
-                if (sent != -1 && sent == received) {
+                if (result.sent != -1 && result.sent == result.received) {
                     finish = true;
                 }
-                */
             }
 
-
-            if (mq_close(resultsDesc)) {
+            if (mq_unlink(resultsQName)) {
                 syserr("Error in close:");
             }
 
@@ -171,6 +153,8 @@ int main() {
                 syserr("Error in wait\n");
             }
     }
+
+    printf("Snt: %d\nRcd: %d\nAcc: %d\n", result.sent, result.received, result.accepted);
 
     return 0;
 }
