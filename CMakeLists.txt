@@ -11,12 +11,12 @@ add_executable(validator validator.c)
 add_executable(tester tester.c)
 #add_executable(run run.c)
 
-target_link_libraries(validator err)
-target_link_libraries(validator helper)
-target_link_libraries(tester err)
-target_link_libraries(tester helper)
-#tartet_link_libraries(run err)
-#target_link_libraries(run helper)
+target_link_libraries(validator err -lrt)
+target_link_libraries(validator helper -lrt)
+target_link_libraries(tester err -lrt)
+target_link_libraries(tester helper -lrt)
+#tartet_link_libraries(run err -lrt)
+#target_link_libraries(run helper -lrt)
 
 
 install(TARGETS DESTINATION .)
