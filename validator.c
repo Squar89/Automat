@@ -90,8 +90,8 @@ int main() {
 
                 default: /* empty statement */;
                     /* TEMP CODE */
-                    mqd_t tempDesc = mq_open(tempName, O_RDONLY | O_CREAT, 0777, NULL);
-                    if (tempDesc == (mqd_t) -1) {
+                    mqd_t tempDesc2 = mq_open(tempName, O_RDONLY | O_CREAT, 0777, NULL);
+                    if (tempDesc2 == (mqd_t) -1) {
                         syserr("Error in mq_open");
                     }
 
@@ -100,7 +100,7 @@ int main() {
                     while (!endSignalReceived) {
                         /* TEMP CODE */
                         /* "pid:word" OR "!" */
-                        ret = mq_receive(tempDesc, buffer, MAXLEN, NULL);
+                        ret = mq_receive(tempDesc2, buffer, MAXLEN, NULL);
                         if (ret < 0) {
                             syserr("Error in rec: ");
                         }
@@ -150,7 +150,7 @@ int main() {
                     }
 
                     /* TEMP CODE */
-                    if (mq_close(tempDesc)) {
+                    if (mq_close(tempDesc2)) {
                         syserr("Error in close:");
                     }
                     /* TEMP CODE */
