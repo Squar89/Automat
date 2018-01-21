@@ -34,9 +34,9 @@ int main() {
                 case -1:
                     syserr("Error in fork\n");
 
-                case 0:
-                    char word[MAXLEN] = "";
-                    char buffer[MAXLEN] = "";
+                case 0: /*empty statement */;
+                    char word[MAXLEN];
+                    char buffer[MAXLEN];
                     const char *qName = "/validatorQ";
                     const char *tempName = "/tempQ";
 
@@ -88,7 +88,7 @@ int main() {
 
                     exit(0);
 
-                default:
+                default: /* empty statement */;
                     /* TEMP CODE */
                     char buffer[MAXLEN];
                     const char *tempName = "/tempQ";

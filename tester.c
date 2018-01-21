@@ -52,7 +52,7 @@ int main() {
         case -1:
             syserr("Error in fork\n");
 
-        case 0:
+        case 0: ;
             const char *qName = "/validatorQ";
             int count = 0;
             char word[MAXLEN];
@@ -119,7 +119,7 @@ int main() {
 
             exit(0);
 
-        default:
+        default: ;
             char buffer[MAXLEN];
 
             mqd_t desc = mq_open(resultsQName, O_RDONLY | O_CREAT, 0777, NULL);
