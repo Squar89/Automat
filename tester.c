@@ -23,6 +23,7 @@ int main() {
     customSignal = SIGRTMIN + 1;
     signal(customSignal, sigHandler);
 
+    pid_t childPid;
     pid_t originPid = getpid();
     printf("PID: %d\n", originPid);
 
@@ -48,7 +49,7 @@ int main() {
             jesli syn wysle liczbe wczytanych linii to czekaj na tyle odpowiedzi a potem sie skoncz
     */
 
-    switch (pid_t childPid = fork()) {
+    switch (childPid = fork()) {
         case -1:
             syserr("Error in fork\n");
 
@@ -57,19 +58,19 @@ int main() {
             int count = 0;
             char word[MAXLEN];
 
-            mqd_t desc = mq_open(qName, O_WRONLY | O_CREAT, 0777, NULL);
-            if (desc == (mqd_t) -1) {
+            mqd_t validatorDesc = mq_open(qName, O_WRONLY | O_CREAT, 0777, NULL);
+            if (validatorDesc == (mqd_t) -1) {
                 syserr("Error in mq_open");
             }
 
             while (!finish) {
                 scanf("%s", word);
 
-                if (word == EOF) {
+                if (*word == EOF) {
                     finish = true;
                 }
                 else if (strncmp(word, "!", 2)) {
-                    ret = mq_send(desc, word, strlen(word), 1);
+                    ret = mq_send(validatorDesc, word, strlen(word), 1);
                     if (ret) {
                         syserr("Error in mq_send: ");
                     }
@@ -83,7 +84,7 @@ int main() {
                         syserr("Error in sprintf: ");
                     }
 
-                    ret = mq_send(desc, msg, strlen(msg), 1);
+                    ret = mq_send(validatorDesc, msg, strlen(msg), 1);
                     free(msg);
                     if (ret) {
                         syserr("Error in mq_send: ");
@@ -91,8 +92,8 @@ int main() {
                 }
             }
 
-            mqd_t desc2 = mq_open(resultsQName, O_WRONLY | O_CREAT, 0777, NULL);
-            if (desc2 == (mqd_t) -1) {
+            mqd_t countDesc = mq_open(resultsQName, O_WRONLY | O_CREAT, 0777, NULL);
+            if (countDesc == (mqd_t) -1) {
                 syserr("Error in mq_open");
             }
 
@@ -103,17 +104,17 @@ int main() {
                 syserr("Error in sprintf: ");
             }
 
-            ret = mq_send(desc2, msg, strlen(msg), 1);
+            ret = mq_send(countDesc, msg, strlen(msg), 1);
             free(msg);
             if (ret) {
                 syserr("Error in mq_send\n");
             }
 
-            if (mq_close(desc)) {
+            if (mq_close(validatorDesc)) {
                 syserr("Error in close:");
             }
 
-            if (mq_close(desc2)) {
+            if (mq_close(countDesc)) {
                 syserr("Error in close:");
             }
 
@@ -122,15 +123,15 @@ int main() {
         default: ;
             char buffer[MAXLEN];
 
-            mqd_t desc = mq_open(resultsQName, O_RDONLY | O_CREAT, 0777, NULL);
-            if (desc == (mqd_t) -1) {
+            mqd_t resultsDesc = mq_open(resultsQName, O_RDONLY | O_CREAT, 0777, NULL);
+            if (resultsDesc == (mqd_t) -1) {
                 syserr("Error in mq_open");
             }
 
             //ustaw sent na -1, received na 0, accepted na 0
             while (!finish) {
                 /* "A|word" OR "N|word OR "!" OR "sent" */
-                ret = mq_receive(desc, buffer, MAXLEN, NULL);
+                ret = mq_receive(resultsDesc, buffer, MAXLEN, NULL);
                 if (ret < 0) {
                     syserr("Error in rec: ");
                 }
@@ -161,7 +162,7 @@ int main() {
             }
 
 
-            if (mq_close(desc)) {
+            if (mq_close(resultsDesc)) {
                 syserr("Error in close:");
             }
 
