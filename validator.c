@@ -1,10 +1,14 @@
+#include <stdbool.h>
+
 #include "err.h"
 #include "helper.h"
 
+/* TODO
 void updateTesterResults(pid_t testerPid, bool accepted) {
     //znajdz na liscie i zaaktualizuj
     //jesli nie ma na liscie to dodaj
 }
+*/
 
 int main() {
     summary results;
