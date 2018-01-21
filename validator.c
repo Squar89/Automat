@@ -111,10 +111,10 @@ int main() {
                             endSignalReceived = true;
                         }
                         else {
-                            int testerPid = strtol(buffer, buffer, 0);//TODO NAPRAW TO
+                            int testerPid = strtol(buffer, NULL, 0);
 
                             char *msg = (char*) malloc(MAXLEN * sizeof(char));
-                            ret = sprintf(msg, "A|%s", buffer + 1);
+                            ret = sprintf(msg, "A|%s", strchr(buffer, ':') + 1);
                             if (ret < 0) {
                                 syserr("Error in sprintf: ");
                             }
