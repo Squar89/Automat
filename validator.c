@@ -38,12 +38,12 @@ int main() {
                     const char *qName = "/validatorQ";
                     const char *tempName = "/tempQ";
 
-                    mgd_t desc = mq_open(qName, O_RDONLY | O_CREAT, 0777, NULL);
+                    mqd_t desc = mq_open(qName, O_RDONLY | O_CREAT, 0777, NULL);
                     if (desc == (mqd_t) -1) {
                         syserr("Error in mq_open");
                     }
 
-                    mgd_t tempDesc = mq_open(tempName, O_WRONLY | O_CREAT, 0777, NULL);
+                    mqd_t tempDesc = mq_open(tempName, O_WRONLY | O_CREAT, 0777, NULL);
                     if (tempDesc == (mqd_t) -1) {
                         syserr("Error in mq_open");
                     }
@@ -91,7 +91,7 @@ int main() {
                     char buffer[MAXLEN];
                     const char *tempName = "/tempQ";
 
-                    mgd_t tempDesc = mq_open(tempName, O_RDONLY | O_CREAT, 0777, NULL);
+                    mqd_t tempDesc = mq_open(tempName, O_RDONLY | O_CREAT, 0777, NULL);
                     if (tempDesc == (mqd_t) -1) {
                         syserr("Error in mq_open");
                     }
@@ -127,7 +127,7 @@ int main() {
                                 syserr("Error in sprintf: ");
                             }
 
-                            mgd_t resultDesc = mq_open(resultsQ, O_WRONLY | O_CREAT, 0777, NULL);//TODO aktualnie nigdzie jej nie zamykasz
+                            mqd_t resultDesc = mq_open(resultsQ, O_WRONLY | O_CREAT, 0777, NULL);//TODO aktualnie nigdzie jej nie zamykasz
                             if (resultDesc == (mqd_t) -1) {
                                 free(msg);
                                 free(resultsQ);
