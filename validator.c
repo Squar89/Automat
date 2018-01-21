@@ -35,8 +35,8 @@ int main() {
                     syserr("Error in fork\n");
 
                 case 0:
-                    char word[MAXLEN];
-                    char buffer[MAXLEN];
+                    char word[MAXLEN] = "";
+                    char buffer[MAXLEN] = "";
                     const char *qName = "/validatorQ";
                     const char *tempName = "/tempQ";
 
@@ -112,7 +112,7 @@ int main() {
                             endSignalReceived = true;
                         }
                         else {
-                            int testerPid = strtol(buffer, buffer, MAXLEN, NULL);
+                            int testerPid = strtol(buffer, buffer, 0);
 
                             char *msg = (char*) malloc(MAXLEN * sizeof(char));
                             ret = sprintf(msg, "A|%s", buffer + 1);
