@@ -5,9 +5,9 @@
 #define UINTMAXLEN 13
 #define QNAMEMAXLEN 20
 
-struct summary {
+typedef struct {
     pid_t subjectPid
     int received;
     int sent
     int accepted;
-}
+} summary;

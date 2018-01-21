@@ -13,12 +13,13 @@ void sigHandler() {
 int main() {
     char resultsQName[QNAMEMAXLEN];
     summary result;
-    int ret;
+    int ret, customSignal;
 
     if (SIGRTMIN + 1 > SIGRTMAX) {
         syserr("SIGRTMIN + 1 exceeds SIGRTMAX\n");
     }
-    signal(SIGRTMIN + 1, sigHandler);
+    customSignal = SIGRTMIN + 1;
+    signal(customSignal, sigHandler);
 
     pid_t originPid = getpid();
     printf("PID: %d\n", originPid);
@@ -54,7 +55,7 @@ int main() {
             int count = 0;
             char word[MAXLEN];
 
-            mgd_t desc = mq_open(qName, O_WRONLY | O_CREAT);
+            mgd_t desc = mq_open(qName, O_WRONLY | O_CREAT, 0777, NULL);
             if (desc == (mqd_t) -1) {
                 syserr("Error in mq_open");
             }
@@ -65,7 +66,7 @@ int main() {
                 if (word == EOF) {
                     finish = true;
                 }
-                else if (strncmp(word, "!", 3)) {
+                else if (strncmp(word, "!", 2)) {
                     ret = mq_send(desc, word, strlen(word), 1);
                     if (ret) {
                         syserr("Error in mq_send: ");
@@ -88,7 +89,7 @@ int main() {
                 }
             }
 
-            mgd_t desc2 = mq_open(resultsQName, O_WRONLY | O_CREAT);
+            mgd_t desc2 = mq_open(resultsQName, O_WRONLY | O_CREAT, 0777, NULL);
             if (desc2 == (mqd_t) -1) {
                 syserr("Error in mq_open");
             }
@@ -119,7 +120,7 @@ int main() {
         default:
             char buffer[MAXLEN];
 
-            mgd_t desc = mq_open(resultsQName, O_RDONLY | O_CREAT);
+            mgd_t desc = mq_open(resultsQName, O_RDONLY | O_CREAT, 0777, NULL);
             if (desc == (mqd_t) -1) {
                 syserr("Error in mq_open");
             }
@@ -133,8 +134,8 @@ int main() {
                 }
 
                 /* end signal received */
-                if (strncmp(buffer, "!", 3)) {
-                    kill(childPid, /*some int*/);//TODO
+                if (strncmp(buffer, "!", 2)) {
+                    kill(childPid, customSignal);
                     finish = true;
                 }
                 /* number of sent queries received */
