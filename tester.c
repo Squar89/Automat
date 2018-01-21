@@ -52,6 +52,7 @@ int main() {
     switch (childPid = fork()) {
         case -1:
             syserr("Error in fork\n");
+            break;
 
         case 0: ;
             const char *qName = "/validatorQ";

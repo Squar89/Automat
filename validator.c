@@ -28,6 +28,7 @@ int main() {
     switch (fork()) {
         case -1:
             syserr("Error in fork\n");
+            break;
 
         case 0:
             //exec run //TODO przenies wczytywanie do run, stworz na poczatku proces run, ktory bedzie naczelnikiem dla validator
@@ -36,6 +37,7 @@ int main() {
             switch (fork()) {
                 case -1:
                     syserr("Error in fork\n");
+                    break;
 
                 case 0: /*empty statement */;
                     const char *qName = "/validatorQ";
@@ -109,7 +111,7 @@ int main() {
                             endSignalReceived = true;
                         }
                         else {
-                            int testerPid = strtol(buffer, buffer, 0);
+                            int testerPid = strtol(buffer, buffer, 0);//TODO NAPRAW TO
 
                             char *msg = (char*) malloc(MAXLEN * sizeof(char));
                             ret = sprintf(msg, "A|%s", buffer + 1);
