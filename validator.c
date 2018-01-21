@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <string.h>
 
 #include "err.h"
 #include "helper.h"
