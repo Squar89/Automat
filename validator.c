@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "err.h"
 #include "helper.h"
@@ -37,7 +38,6 @@ int main() {
                     syserr("Error in fork\n");
 
                 case 0: /*empty statement */;
-                    char word[MAXLEN];
                     const char *qName = "/validatorQ";
 
                     mqd_t desc = mq_open(qName, O_RDONLY | O_CREAT, 0777, NULL);
@@ -133,7 +133,7 @@ int main() {
                                 syserr("Error in mq_open");
                             }
 
-                            ret = mq_send(resultsQ, msg, strlen(msg), 1);
+                            ret = mq_send(resultDesc, msg, strlen(msg), 1);
                             free(msg);
                             free(resultsQ);
                             if (ret) {
