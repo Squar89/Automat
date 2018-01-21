@@ -3,7 +3,7 @@
 
 #include <unistd.h>
 #include <sys/types.h>
-#include <sys/msg.h>
+#include <mqueue.h>
 
 #define MAXLEN 1019
 #define UINTMAXLEN 13
