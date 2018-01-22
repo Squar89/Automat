@@ -8,11 +8,11 @@
 #include "helper.h"
 #include "err.h"
 
-typedef struct Automaton = {
+typedef struct Automaton {
     int N; int A; int Q; int U; int F;
     int starting;
-    bool uni[109] = {0};
-    bool exi[109] = {0};
+    bool uni[109];
+    bool exi[109];
     dArray ***map;
 } Automaton;
 
@@ -50,7 +50,7 @@ int main() {
     while (true) {
         scanf("%d %c %d", &q, &a, &r);
         while (true) {
-            push(automat.map[q][int(a) - int('a')], r); 
+            push(automat.map[q][(int) a - (int)'a'], r); 
 
             scanf("%c", &c);
             if (c == '\n' || feof(stdin)) {
@@ -135,8 +135,8 @@ int main() {
 
     while (wait(0) > 0);//wait for all child processes
 
-    for (int i = 0; i < Q + 2; i++) {
-        for (int j = 0; j < A + 2; j++) {
+    for (int i = 0; i < automat.Q + 2; i++) {
+        for (int j = 0; j < automat.A + 2; j++) {
             clear(automat.map[i][j]);
         }
         free(automat.map[i]);
