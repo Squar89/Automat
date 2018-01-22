@@ -5,6 +5,7 @@
 #include <wait.h>
 #include "err.h"
 #include "helper.h"
+#include "dArray.h"
 
 /* TODO
 void updateTesterResults(pid_t testerPid, bool accepted) {

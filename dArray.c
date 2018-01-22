@@ -27,13 +27,13 @@ void push(dArray *array, unsigned int newElement) {
         expand(array);
     }
 
-    *(array->array_start + size) = newElement;
-    size++;
+    *(array->array_start + array->size) = newElement;
+    array->size++;
 }
 
 void pop_back(dArray *array) {
-    if (size > 0) {
-        size--;
+    if (array->size > 0) {
+        array->size--;
     }
 }
 
