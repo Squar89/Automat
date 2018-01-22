@@ -11,6 +11,7 @@
 #define UINTMAXLEN 13
 #define QNAMEMAXLEN 20
 #define PIDMAXLEN 8
+#define MAXPID 50000
 
 typedef struct summary {
     pid_t subjectPid;

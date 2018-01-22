@@ -7,16 +7,9 @@
 #include "helper.h"
 #include "dArray.h"
 
-/* TODO
-void updateTesterResults(pid_t testerPid, bool accepted) {
-    //znajdz na liscie i zaaktualizuj
-    //jesli nie ma na liscie to dodaj
-}
-*/
-
 int main() {
-    summary results;
-    /* testers list */
+    summary results[MAXPID];
+    bool seen[MAXPID] = {0};
     bool endSignalReceived = false;
     int ret;
     char buffer[MAXLEN];
@@ -92,10 +85,16 @@ int main() {
                     exit(0);
 
                 default: ;
+                    pid_t thisPid = getpid();
                     mqd_t runOutDesc = mq_open(resultRunQName, O_RDONLY | O_CREAT, 0777, &attr);
                     if (runOutDesc == (mqd_t) -1) {
                         syserr("Error in mq_open (qName)");
                     }
+
+                    results[thisPid].subjectPid = thisPid;
+                    results[thisPid].received = 0;
+                    results[thisPid].sent = 0;
+                    results[thisPid].accepted = 0;
 
                     while (!endSignalReceived) {
                         /* "A|pid:word" OR "N|pid:word" OR "!" */
@@ -112,7 +111,12 @@ int main() {
                             int testerPid = strtol(buffer + 2, NULL, 0);
 
                             char *msg = (char*) malloc((2 + strlen(strchr(buffer, ':') + 1) + 1) * sizeof(char));
-                            ret = sprintf(msg, "A|%s", strchr(buffer, ':') + 1);
+                            if (*buffer == 'A') {
+                                ret = sprintf(msg, "A|%s", strchr(buffer, ':') + 1);
+                            }
+                            else {
+                                ret = sprintf(msg, "N|%s", strchr(buffer, ':') + 1);   
+                            }
                             if (ret < 0) {
                                 syserr("Error in sprintf: ");
                             }
@@ -147,25 +151,43 @@ int main() {
                             if (mq_close(resultDesc)) {
                                 syserr("Error in close:");
                             }
+
+                            if (!seen[testerPid]) {
+                                seen[testerPid] = 1;
+                                results[testerPid].subjectPid = testerPid;
+                                results[testerPid].received = 0;
+                                results[testerPid].sent = 0;
+                                results[testerPid].accepted = 0;
+                            }
+                            results[testerPid].sent++;
+                            results[testerPid].received++;
+                            if (*buffer == 'A') {
+                                results[thisPid].accepted++;
+                                results[testerPid].accepted++;
+                            }
+
+                            results[thisPid].sent++;
+                            results[thisPid].received++;
                         }
-                        //zaaktualizuj podsumowanie
-                        //zaaktualizuj podsumowanie danego testera - potrzebujesz do tego listy testerów, żeby wiedzieć czy zaaktualizować czy dodać nowego
-                        //zaaktualizuj liczniki
-                        //zaczekaj na run? na koniec zaczekaj na wszystkie runy?
                     }
 
                     if (mq_unlink(resultRunQName)) {
                         syserr("Error in close:");
                     }
+
+                    printf("Rcd: %d\nSnt: %d\nAcc: %d\n", results[thisPid].received, results[thisPid].sent, results[thisPid].accepted);
+
+                    for (int pid = 0; pid < MAXPID; pid++) {
+                        if (seen[pid]) {
+                            printf("PID: %d\nRcd: %d\nAcc: %d\n", pid, results[pid].received, results[pid].accepted);
+                        }
+                    }
             }
     }
 
-    //w momencie jak wysyłasz ! do testerów, rob unlink kolejki, nie close
+    //w momencie jak wysyłasz ! do testerów, rob unlink kolejki, nie close (jeszcze inaczej)
 
-    //wypisz results
-    //wypisz podsumowanie dla każdego testera
+    while (wait(0) > 0);//wait for all child processes
 
     return 0;
 }
-
-//while ((wpid = wait(&status)) > 0); // this way, the father waits for all the child
