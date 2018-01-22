@@ -19,14 +19,15 @@ int main() {
     int ret;
     char buffer[MAXLEN];
     const char *tempName = "/tempQ";/*TEMP TODO USUN*/
-    const char *qName2 = "/validatorQ";
 
     /*
+    const char *qName2 = "/validatorQ";
+
     mq_unlink(tempName);
     mq_unlink(qName2);
     return 0;*/
 
-    
+
     //forkuj, dziecko odbiera słowa i przekazuje je do run, rodzic odbiera odpowiedzi od run i przekazuje je do testerow
     //gdy dziecko dostanie ! to wysyła ! do run i konczy sie, run wie ze ma sie skonczyc i wysyla ! do glownego i konczy wszystkie pomniejsze run,
     //glowny odbiera ! wypisuje wszystkie raporty i konczy 
