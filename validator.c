@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <wait.h>
 #include "err.h"
 #include "helper.h"
 
@@ -20,14 +21,6 @@ int main() {
     char buffer[MAXLEN];
     const char *tempName = "/tempQ";/*TEMP TODO USUN*/
 
-    /*
-    const char *qName2 = "/validatorQ";
-
-    mq_unlink(tempName);
-    mq_unlink(qName2);
-    return 0;*/
-
-
     //forkuj, dziecko odbiera słowa i przekazuje je do run, rodzic odbiera odpowiedzi od run i przekazuje je do testerow
     //gdy dziecko dostanie ! to wysyła ! do run i konczy sie, run wie ze ma sie skonczyc i wysyla ! do glownego i konczy wszystkie pomniejsze run,
     //glowny odbiera ! wypisuje wszystkie raporty i konczy 
@@ -38,8 +31,9 @@ int main() {
             break;
 
         case 0:
+            execl("./run", NULL);
+            syserr("Error in exec\n");
             //exec run //TODO przenies wczytywanie do run, stworz na poczatku proces run, ktory bedzie naczelnikiem dla validator
-            /* TEMP */exit(0);/* TEMP */
 
         default:
             switch (fork()) {

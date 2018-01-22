@@ -1,11 +1,11 @@
 #ifndef _VTR_HELPER_
 #define _VTR_HELPER_
 
-#include <limits.h>
+#include <stdarg.h>//TODO
+
 #include <unistd.h>
 #include <sys/types.h>
 #include <mqueue.h>
-#include <wait.h>
 
 #define MAXLEN 1019
 #define UINTMAXLEN 13
@@ -20,9 +20,15 @@ typedef struct {
 } summary;
 
 struct mq_attr attr = {
-    .mq_maxmsg = 10,           /* Max. # of messages on queue */
+    .mq_maxmsg = 10,                 /* Max. # of messages on queue */
     .mq_msgsize = MAXLEN             /* Max. message size (bytes) */
 };
+
+void sigrtminCheck();
+
+int sprintfCheck(char *str, char *format, ...);
+
+
 
 
 #endif /* _VTR_HELPER_ */

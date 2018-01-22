@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <signal.h>
+#include <wait.h>
 #include "err.h"
 #include "helper.h"
 
@@ -31,12 +32,6 @@ int main() {
     if (ret < 0) {
         syserr("Error in sprintf: ");
     }
-    
-    /*
-    const char *qName = "/validatorQ";
-    mq_unlink(qName);
-    mq_unlink(resultsQName);
-    return 0;*/
 
     switch (childPid = fork()) {
         case -1:
