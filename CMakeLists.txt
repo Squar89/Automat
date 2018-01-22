@@ -4,7 +4,7 @@ project(PW_AUTOMATON C)
 set(CMAKE_C_FLAGS "-Wall -Wextra")
 
 add_library(err err.c)
-add_library(helper helper.c)#usun jesli .c bedzie puste
+add_library(helper helper.c)
 add_library(dArray dArray.c)
 SET_TARGET_PROPERTIES(err helper dArray PROPERTIES LINKER_LANGUAGE C)
 

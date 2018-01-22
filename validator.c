@@ -57,7 +57,6 @@ int main() {
                         if (ret < 0) {
                             syserr("Error in rec (qName): ");
                         }
-                        printf("Validator: odebrałem %s od testera\n", buffer);
 
                         if (strncmp(buffer, "!", 2) == 0) {
                             endSignalReceived = true;
@@ -81,7 +80,6 @@ int main() {
                             if (ret) {
                                 syserr("Error in mq_send: ");
                             }
-                            printf("Validator: wysłałem %s do run\n", buffer);
                         }
                         else {
                             receivedCount++;
@@ -90,7 +88,6 @@ int main() {
                             if (ret) {
                                 syserr("Error in mq_send: ");
                             }
-                            printf("Validator: wysłałem %s do run\n", buffer);
                         }
                     }
                     
@@ -127,7 +124,6 @@ int main() {
                         if (ret < 0) {
                             syserr("Error in rec (runOutDesc): ");
                         }
-                        printf("Validator: odebrałem %s od run\n", buffer);
 
                         if (strncmp(buffer, "!", 2) == 0) {
                             endSignalReceived = true;
@@ -139,7 +135,6 @@ int main() {
                             buffer[k] = '\0';
                             
                             totalReceived = strtol(buffer, NULL, 0);
-                            printf("==================\n%d\n===========\n", totalReceived);
 
                             if (close(pipe_dsc[0]) == -1){
                                 syserr("Error in close(pipe_dsc[0])\n");
@@ -175,16 +170,11 @@ int main() {
                             }
 
                             ret = mq_send(resultDesc, msg, strlen(msg) + 1, 1);
-                            //free(msg);
-                            //free(resultsQ); TODO
-                            if (ret) {
-                                free(msg);
-                                free(resultsQ);
-                                syserr("Error in mq_send: ");
-                            }
-                            printf("Validator: wysłałem %s do testera\n", msg);
                             free(msg);
                             free(resultsQ);
+                            if (ret) {
+                                syserr("Error in mq_send: ");
+                            }
                             sentCount++;
 
                             if (mq_close(resultDesc)) {

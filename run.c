@@ -20,8 +20,8 @@ bool accept(Automaton *automat, char *word, int r) {
     }
 
     if (r >= automat->U) {
-        for (int i = 0; i < size(automat->map[r][(int) *word - 'a']); i++) {
-            if (accept(automat, word + 1, *(automat->array_start + i)) == 1) {
+        for (unsigned int i = 0; i < (automat->map[r][(int) *word - 'a'])->size; i++) {
+            if (accept(automat, word + 1, *(automat->map[r][(int) *word - 'a']->array_start + i)) == 1) {
                 return true;
             }
         }
@@ -29,8 +29,8 @@ bool accept(Automaton *automat, char *word, int r) {
         return false;
     }
     else {
-        for (int i = 0; i < size(automat->map[r][(int) *word - 'a']); i++) {
-            if (accept(automat, word + 1, *(automat->array_start + i)) == 0) {
+        for (unsigned int i = 0; i < (automat->map[r][(int) *word - 'a'])->size; i++) {
+            if (accept(automat, word + 1, *(automat->map[r][(int) *word - 'a']->array_start + i)) == 0) {
                 return false;
             }
         }
@@ -49,6 +49,10 @@ int main() {
     bool result;
     const char *queryRunQName = "/queryRunQ";
     const char *resultRunQName = "/resultRunQ";
+
+    for (int i = 0; i < 109; i++) {
+        automat.acc[i] = 0;
+    }
 
     scanf("%d %d %d %d %d ", &automat.N, &automat.A, &automat.Q, &automat.U, &automat.F);
     scanf("%d ", &automat.starting);
@@ -93,7 +97,6 @@ int main() {
         if (ret < 0) {
             syserr("Error in rec (queryRunQName): ");
         }
-        printf("Run: odebrałem %s od validator\n", buffer);
 
         if (strncmp(buffer, "!", 2) == 0) {
             endSignalReceived = true;
@@ -115,10 +118,9 @@ int main() {
                     if (ret) {
                         syserr("Error in mq_send: ");
                     }
-                    printf("Run: wysłałem %s do validator\n", buffer);
                 }
                 else {
-                    result = accept(&automat, buffer, (strchr(buffer, ':') + 1), automat.starting);
+                    result = accept(&automat, (strchr(buffer, ':') + 1), automat.starting);
 
                     char *msg = (char*) malloc((2 + strlen(buffer) + 1) * sizeof(char));
                     if (result) {
@@ -137,13 +139,10 @@ int main() {
                     }
 
                     ret = mq_send(runOutDesc, msg, strlen(msg) + 1, 1);
-                    //free(msg);TODO
+                    free(msg);
                     if (ret) {
-                        free(msg);
                         syserr("Error in mq_send: ");
                     }
-                    printf("Run: wysłałem %s do validator\n", msg);
-                    free(msg);
                 }
 
                 if (mq_close(runOutDesc)) {

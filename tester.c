@@ -7,24 +7,11 @@
 #include "err.h"
 #include "helper.h"
 
-#include <time.h>//TODO
-
 bool finish = false;
 
 void sigHandler() {
     finish = true;
 }
-
-/* TEMP */
-void waitForRandom () {
-    srand(time(NULL));   // should only be called once
-    unsigned int secs = rand();
-    secs %= 10;
-
-    unsigned int retTime = time(0) + secs;   // Get finishing time.
-    while (time(0) < retTime);               // Loop until it arrives.
-}
-/* TEMP */
 
 int main() {
     char resultsQName[QNAMEMAXLEN];
@@ -63,11 +50,10 @@ int main() {
 
             while (!finish) {
                 word[0] = '\0';
-                scanf("%s", word);
-                printf("Tester(%d): wczytałem %s\n", getpid(), word);
-                if (*word == '#') {
-                    waitForRandom();
-                    continue;
+                fgets(word, MAXLEN, stdin);
+                char *pos;
+                if ((pos=strchr(word, '\n')) != NULL) {
+                    *pos = '\0';
                 }
 
                 if (feof(stdin)) {
@@ -79,7 +65,6 @@ int main() {
                     if (ret) {
                         syserr("Error in mq_send: ");
                     }
-                    printf("Tester(%d): wysłałem %s do validatora\n", getpid(), word);
                 }
                 else {
                     count++;
@@ -91,13 +76,10 @@ int main() {
                     }
 
                     ret = mq_send(validatorDesc, msg, strlen(msg) + 1, 1);
-                    //free(msg);TODO
+                    free(msg);
                     if (ret) {
-                        free(msg);
                         syserr("Error in mq_send: ");
                     }
-                    printf("Tester(%d): wysłałem %s do validatora\n", getpid(), msg);
-                    free(msg);
                 }
             }
 
@@ -114,13 +96,10 @@ int main() {
             }
 
             ret = mq_send(countDesc, msg, strlen(msg) + 1, 1);
-            //free(msg);TODO
+            free(msg);
             if (ret) {
-                free(msg);
                 syserr("Error in mq_send\n");
             }
-            printf("Tester(%d): wysłałem count(%s) do ojca\n", getpid(), msg);
-            free(msg);
 
             if (mq_close(validatorDesc)) {
                 syserr("Error in close:");
@@ -149,7 +128,6 @@ int main() {
                 if (ret < 0) {
                     syserr("Error in rec: ");
                 }
-                printf("Tester(%d): odebrałem %s\n", getpid(), buffer);
 
                 /* end signal received */
                 if (strncmp(buffer, "!", 2) == 0) {
