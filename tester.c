@@ -31,6 +31,12 @@ int main() {
     if (ret < 0) {
         syserr("Error in sprintf: ");
     }
+    
+    /*
+    const char *qName = "/validatorQ";
+    mq_unlink(qName);
+    mq_unlink(resultsQName);
+    return 0;*/
 
     switch (childPid = fork()) {
         case -1:
@@ -42,13 +48,14 @@ int main() {
             int count = 0;
             char word[MAXLEN];
 
-            mqd_t validatorDesc = mq_open(qName, O_WRONLY | O_CREAT, 0777, NULL);
+            mqd_t validatorDesc = mq_open(qName, O_WRONLY | O_CREAT, 0777, &attr);
             if (validatorDesc == (mqd_t) -1) {
                 syserr("Error in mq_open");
             }
 
             while (!finish) {
                 scanf("%s", word);
+                printf("Tester(%d): wczytałem %s\n", getpid(), word);
 
                 if (*word == EOF) {
                     finish = true;
@@ -58,6 +65,7 @@ int main() {
                     if (ret) {
                         syserr("Error in mq_send: ");
                     }
+                    printf("Tester(%d): wysłałem %s do validatora\n", getpid(), word);
                 }
                 else {
                     count++;
@@ -69,14 +77,17 @@ int main() {
                     }
 
                     ret = mq_send(validatorDesc, msg, strlen(msg) + 1, 1);
-                    free(msg);
+                    //free(msg);TODO
                     if (ret) {
+                        free(msg);
                         syserr("Error in mq_send: ");
                     }
+                    printf("Tester(%d): wysłałem %s do validatora\n", getpid(), msg);
+                    free(msg);
                 }
             }
 
-            mqd_t countDesc = mq_open(resultsQName, O_WRONLY | O_CREAT, 0777, NULL);
+            mqd_t countDesc = mq_open(resultsQName, O_WRONLY | O_CREAT, 0777, &attr);
             if (countDesc == (mqd_t) -1) {
                 syserr("Error in mq_open");
             }
@@ -89,10 +100,13 @@ int main() {
             }
 
             ret = mq_send(countDesc, msg, strlen(msg) + 1, 1);
-            free(msg);
+            //free(msg);TODO
             if (ret) {
+                free(msg);
                 syserr("Error in mq_send\n");
             }
+            printf("Tester(%d): wysłałem count(%s) do ojca\n", getpid(), msg);
+            free(msg);
 
             if (mq_close(validatorDesc)) {
                 syserr("Error in close:");
@@ -107,7 +121,7 @@ int main() {
         default: ;
             char buffer[MAXLEN];
 
-            mqd_t resultsDesc = mq_open(resultsQName, O_RDONLY | O_CREAT, 0777, NULL);
+            mqd_t resultsDesc = mq_open(resultsQName, O_RDONLY | O_CREAT, 0777, &attr);
             if (resultsDesc == (mqd_t) -1) {
                 syserr("Error in mq_open");
             }
@@ -121,6 +135,7 @@ int main() {
                 if (ret < 0) {
                     syserr("Error in rec: ");
                 }
+                printf("Tester(%d): odebrałem %s\n", getpid(), buffer);
 
                 /* end signal received */
                 if (strncmp(buffer, "!", 2)) {

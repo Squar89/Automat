@@ -19,15 +19,14 @@ int main() {
     int ret;
     char buffer[MAXLEN];
     const char *tempName = "/tempQ";/*TEMP TODO USUN*/
-    /*const char *qName2 = "/validatorQ";
+    const char *qName2 = "/validatorQ";
 
-    if (mq_unlink(tempName)) {
-                        syserr("Error in close:");
-                    }
-    if (mq_unlink(qName2)) {
-                        syserr("Error in close:");
-                    }
-                    return 0;*/
+    /*
+    mq_unlink(tempName);
+    mq_unlink(qName2);
+    return 0;*/
+
+    
     //forkuj, dziecko odbiera słowa i przekazuje je do run, rodzic odbiera odpowiedzi od run i przekazuje je do testerow
     //gdy dziecko dostanie ! to wysyła ! do run i konczy sie, run wie ze ma sie skonczyc i wysyla ! do glownego i konczy wszystkie pomniejsze run,
     //glowny odbiera ! wypisuje wszystkie raporty i konczy 
@@ -62,11 +61,11 @@ int main() {
 
                     while (!endSignalReceived) {
                         /* "pid:word" OR "!" */
-                        //printf("1\n");
                         ret = mq_receive(desc, buffer, MAXLEN, NULL);
                         if (ret < 0) {
                             syserr("Error in rec (qName): ");
                         }
+                        printf("Validator: odebrałem %s\n od testera\n", buffer);
 
                         if (strncmp(buffer, "!", 2)) {
                             endSignalReceived = true;
@@ -76,6 +75,7 @@ int main() {
                             if (ret) {
                                 syserr("Error in mq_send: ");
                             }
+                            printf("Validator: wysłałem %s\n do validator\n", buffer);
                             /* TEMP CODE */
                         }
                         else {
@@ -85,6 +85,7 @@ int main() {
                             if (ret) {
                                 syserr("Error in mq_send: ");
                             }
+                            printf("Validator: wysłałem %s\n do validator\n", buffer);
                             /* TEMP CODE */
                         }
                     }
@@ -111,15 +112,11 @@ int main() {
                     while (!endSignalReceived) {
                         /* TEMP CODE */
                         /* "pid:word" OR "!" */
-                        //printf("2\n");
                         ret = mq_receive(tempDesc2, buffer, MAXLEN, NULL);
                         if (ret < 0) {
-                            struct mq_attr d_attr;
-                            mq_getattr(tempDesc2, &d_attr);
-                            printf("%ld, %ld", MAXLEN, d_attr.mq_msgsize);
-
                             syserr("Error in rec (tempName): ");
                         }
+                        printf("Validator: odebrałem %s od validator\n", buffer);
 
                         if (strncmp(buffer, "!", 2)) {
                             endSignalReceived = true;
@@ -149,11 +146,16 @@ int main() {
                             }
 
                             ret = mq_send(resultDesc, msg, strlen(msg) + 1, 1);
-                            free(msg);
-                            free(resultsQ);
+                            //free(msg);
+                            //free(resultsQ); TODO
                             if (ret) {
+                                free(msg);
+                                free(resultsQ);
                                 syserr("Error in mq_send: ");
                             }
+                            printf("Validator: wysłałem %s do testera\n", msg);
+                            free(msg);
+                            free(resultsQ);
 
                             if (mq_close(resultDesc)) {
                                 syserr("Error in close:");
