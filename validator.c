@@ -32,6 +32,7 @@ int main() {
 
         case 0:
             //exec run //TODO przenies wczytywanie do run, stworz na poczatku proces run, ktory bedzie naczelnikiem dla validator
+            /* TEMP */exit(0);/* TEMP */
 
         default:
             switch (fork()) {
@@ -119,7 +120,6 @@ int main() {
                                 syserr("Error in sprintf: ");
                             }
 
-                            /* TODO zrób to lepiej */
                             char *resultsQ = (char*) malloc((9 + PIDMAXLEN + 1) * sizeof(char));
                             ret = sprintf(resultsQ, "/results:%d", testerPid);
                             if (ret < 0) {
