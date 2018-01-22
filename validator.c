@@ -32,7 +32,7 @@ int main() {
             break;
 
         case 0:
-            execl("./run", NULL);
+            execl("run", "run",NULL);
             syserr("Error in exec\n");
 
         default:
@@ -90,7 +90,7 @@ int main() {
 
                     exit(0);
 
-                default:
+                default: ;
                     mqd_t runOutDesc = mq_open(resultRunQName, O_RDONLY | O_CREAT, 0777, &attr);
                     if (runOutDesc == (mqd_t) -1) {
                         syserr("Error in mq_open (qName)");
@@ -153,7 +153,7 @@ int main() {
                         //zaczekaj na run? na koniec zaczekaj na wszystkie runy?
                     }
 
-                    if (mq_unlink(runOutDesc)) {
+                    if (mq_unlink(resultRunQName)) {
                         syserr("Error in close:");
                     }
             }

@@ -1,9 +1,11 @@
 #include <mqueue.h>
 
 int main() {
-    const char *tempName = "/tempQ";
-    const char *qName2 = "/validatorQ";
+    const char *qName = "/validatorQ";
+    const char *queryRunQName = "/queryRunQ";
+    const char *resultRunQName = "/resultRunQ";
 
-    mq_unlink(tempName);
-    mq_unlink(qName2);
+    mq_unlink(qName);
+    mq_unlink(queryRunQName);
+    mq_unlink(resultRunQName);
 }
