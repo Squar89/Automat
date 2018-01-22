@@ -8,43 +8,49 @@
 #include "helper.h"
 #include "err.h"
 
-int main() {
-    int ret;
-    int N, A, Q, U, F, starting, x, q, r;
+typedef struct Automaton = {
+    int N; int A; int Q; int U; int F;
+    int starting;
     bool uni[109] = {0};
     bool exi[109] = {0};
+    dArray ***map;
+} Automaton;
+
+int main() {
+    int ret;
+    int x, q, r;
     char buffer[MAXLEN];
     char c, a;
     bool endSignalReceived = false;
-    dArray ***map;
+    Automaton automat;
     const char *queryRunQName = "/queryRunQ";
     const char *resultRunQName = "/resultRunQ";
 
-    scanf("%d %d %d %d %d ", &N, &A, &Q, &U, &F);
-    scanf("%d ", &starting);
-    for (int i = 0; i < F; i++) {
+    scanf("%d %d %d %d %d ", &automat.N, &automat.A, &automat.Q, &automat.U, &automat.F);
+    scanf("%d ", &automat.starting);
+    for (int i = 0; i < automat.F; i++) {
         scanf("%d ", &x);
 
-        if (i < U) {
-            uni[x] = 1;
+        if (i < automat.U) {
+            automat.uni[x] = 1;
         }
         else {
-            exi[x] = 1;
+            automat.exi[x] = 1;
         }
     }
 
-    map = malloc((Q + 2) * sizeof(dArray**));
-    for (int i = 0; i < Q + 2; i++) {
-        map[i] = malloc((A + 2) * sizeof(dArray*));
-        for (int j = 0; j < A + 2; j++) {
-            map[i][j] = setup();
+    automat.map = malloc((automat.Q + 2) * sizeof(dArray**));
+    for (int i = 0; i < automat.Q + 2; i++) {
+        automat.map[i] = malloc((automat.A + 2) * sizeof(dArray*));
+        for (int j = 0; j < automat.A + 2; j++) {
+            automat.map[i][j] = setup();
         }
     }
 
     while (true) {
         scanf("%d %c %d", &q, &a, &r);
         while (true) {
-            push(map[q][(int) a - (int) 'a'], r); 
+            push(automat.map[q][int(a) - int('a')], r); 
 
             scanf("%c", &c);
             if (c == '\n' || feof(stdin)) {
@@ -94,6 +100,8 @@ int main() {
                 }
                 else {
                     //przetwórz zapytanie TODO
+
+
                     char *msg = (char*) malloc((2 + strlen(buffer) + 1) * sizeof(char));
                     ret = sprintf(msg, "A|%s", buffer);
                     if (ret < 0) {
@@ -129,11 +137,11 @@ int main() {
 
     for (int i = 0; i < Q + 2; i++) {
         for (int j = 0; j < A + 2; j++) {
-            clear(map[i][j]);
+            clear(automat.map[i][j]);
         }
-        free(map[i]);
+        free(automat.map[i]);
     }
-    free(map);
+    free(automat.map);
 
     return 0;
 }
