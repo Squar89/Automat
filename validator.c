@@ -29,7 +29,10 @@ int main() {
             execl("run", "run",NULL);
             syserr("Error in exec\n");
 
-        default:
+        default: ;
+            int pipe_dsc[2];
+            if (pipe(pipe_dsc) == -1) syserr("Error in pipe\n");
+
             switch (fork()) {
                 case -1:
                     syserr("Error in fork\n");
@@ -37,6 +40,11 @@ int main() {
 
                 case 0: ;
                     const char *qName = "/validatorQ";
+                    int receivedCount = 0;
+
+                    if (close(pipe_dsc[0]) == -1){
+                        syserr("Error in close(pipe_dsc[0])\n");
+                    }
 
                     mqd_t desc = mq_open(qName, O_RDONLY | O_CREAT, 0777, &attr);
                     if (desc == (mqd_t) -1) {
@@ -59,6 +67,21 @@ int main() {
                         if (strncmp(buffer, "!", 2) == 0) {
                             endSignalReceived = true;
 
+                            char *msg = (char*) malloc(UINTMAXLEN * sizeof(char));
+                            ret = sprintf(msg, "%d", receivedCount);
+                            if (ret < 0) {
+                                free(msg);
+                                syserr("Error in sprintf: ");
+                            }
+                            if (write(pipe_dsc[1], msg, sizeof(msg)) != sizeof(msg)) {
+                                free(msg);
+                                syserr("Error in write\n");
+                            }
+                            free(msg);
+                            if (close(pipe_dsc[1]) == -1){
+                                syserr("Error in close(pipe_dsc[1])\n");
+                            }
+
                             ret = mq_send(runInDesc, buffer, strlen(buffer) + 1, 1);
                             if (ret) {
                                 syserr("Error in mq_send: ");
@@ -66,6 +89,8 @@ int main() {
                             printf("Validator: wysłałem %s do run\n", buffer);
                         }
                         else {
+                            receivedCount++;
+
                             ret = mq_send(runInDesc, buffer, strlen(buffer) + 1, 1);
                             if (ret) {
                                 syserr("Error in mq_send: ");
@@ -86,6 +111,11 @@ int main() {
 
                 default: ;
                     pid_t thisPid = getpid();
+                    int sentCount = 0;
+                    int totalReceived;
+                    if (close(pipe_dsc[1]) == -1){
+                        syserr("Error in close(pipe_dsc[1])\n");
+                    }
                     mqd_t runOutDesc = mq_open(resultRunQName, O_RDONLY | O_CREAT, 0777, &attr);
                     if (runOutDesc == (mqd_t) -1) {
                         syserr("Error in mq_open (qName)");
@@ -96,7 +126,7 @@ int main() {
                     results[thisPid].sent = 0;
                     results[thisPid].accepted = 0;
 
-                    while (!endSignalReceived) {
+                    while (!endSignalReceived || sentCount < totalReceived) {
                         /* "A|pid:word" OR "N|pid:word" OR "!" */
                         ret = mq_receive(runOutDesc, buffer, MAXLEN, NULL);
                         if (ret < 0) {
@@ -106,6 +136,19 @@ int main() {
 
                         if (strncmp(buffer, "!", 2) == 0) {
                             endSignalReceived = true;
+
+                            if (read(pipe_dsc[0], buffer, MAXLEN - 1) == 0) {
+                                syserr("Error in read\n");
+                            }
+                            int k = strlen(buffer);
+                            buffer[k] = '\0';
+                            
+                            totalReceived = strtol(buffer, NULL, 0);
+                            printf("==================\n%d\n===========\n", totalReceived);
+
+                            if (close(pipe_dsc[0]) == -1){
+                                syserr("Error in close(pipe_dsc[0])\n");
+                            }
                         }
                         else {
                             int testerPid = strtol(buffer + 2, NULL, 0);
@@ -147,6 +190,7 @@ int main() {
                             printf("Validator: wysłałem %s do testera\n", msg);
                             free(msg);
                             free(resultsQ);
+                            sentCount++;
 
                             if (mq_close(resultDesc)) {
                                 syserr("Error in close:");
@@ -181,11 +225,32 @@ int main() {
                         if (seen[pid]) {
                             printf("PID: %d\nRcd: %d\nAcc: %d\n", pid, results[pid].received, results[pid].accepted);
                         }
+
+                        char *closingQ = (char*) malloc((9 + PIDMAXLEN + 1) * sizeof(char));
+                        ret = sprintf(closingQ, "/results:%d", pid);
+                        if (ret < 0) {
+                            free(closingQ);
+                            syserr("Error in sprintf: ");
+                        }
+
+                        mqd_t closingDesc = mq_open(closingQ, O_WRONLY, 0777, &attr);
+                        if (closingDesc == (mqd_t) -1) {
+                            free(closingQ);
+                        }
+                        else {
+                            ret = mq_send(closingDesc, "!\0", 2, 1);
+                            free(closingQ);
+                            if (ret) {
+                                syserr("Error in mq_send: ");
+                            }
+
+                            if (mq_close(closingDesc)) {
+                                syserr("Error in close:");
+                            }
+                        }
                     }
             }
     }
-
-    //w momencie jak wysyłasz ! do testerów, rob unlink kolejki, nie close (jeszcze inaczej)
 
     while (wait(0) > 0);//wait for all child processes
 
