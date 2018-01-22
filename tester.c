@@ -62,6 +62,7 @@ int main() {
             }
 
             while (!finish) {
+                word[0] = '\0';
                 scanf("%s", word);
                 printf("Tester(%d): wczytałem %s\n", getpid(), word);
                 if (*word == '#') {
@@ -72,7 +73,7 @@ int main() {
                 if (feof(stdin)) {
                     finish = true;
                 }
-                else if (strncmp(word, "!", 2) == 0) {
+                if (strncmp(word, "!", 2) == 0) {
                     finish = true;
                     ret = mq_send(validatorDesc, word, strlen(word) + 1, 1);
                     if (ret) {
