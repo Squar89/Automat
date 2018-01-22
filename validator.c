@@ -159,6 +159,8 @@ int main() {
             }
     }
 
+    //w momencie jak wysyłasz ! do testerów, rob unlink kolejki, nie close
+
     //wypisz results
     //wypisz podsumowanie dla każdego testera
 
