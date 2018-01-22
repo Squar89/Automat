@@ -66,9 +66,9 @@ int main() {
                         if (ret < 0) {
                             syserr("Error in rec (qName): ");
                         }
-                        printf("Validator: odebrałem %s\n od testera\n", buffer);
+                        printf("Validator: odebrałem %s od testera\n", buffer);
 
-                        if (strncmp(buffer, "!", 2)) {
+                        if (strncmp(buffer, "!", 2) == 0) {
                             endSignalReceived = true;
                             //wyślij do run "!" TODO
                             /* TEMP CODE */
@@ -76,7 +76,7 @@ int main() {
                             if (ret) {
                                 syserr("Error in mq_send: ");
                             }
-                            printf("Validator: wysłałem %s\n do validator\n", buffer);
+                            printf("Validator: wysłałem %s do validator\n", buffer);
                             /* TEMP CODE */
                         }
                         else {
@@ -86,7 +86,7 @@ int main() {
                             if (ret) {
                                 syserr("Error in mq_send: ");
                             }
-                            printf("Validator: wysłałem %s\n do validator\n", buffer);
+                            printf("Validator: wysłałem %s do validator\n", buffer);
                             /* TEMP CODE */
                         }
                     }
@@ -117,20 +117,26 @@ int main() {
                         if (ret < 0) {
                             syserr("Error in rec (tempName): ");
                         }
+                        printf("0\n");
                         printf("Validator: odebrałem %s od validator\n", buffer);
+                        printf("00\n");
 
-                        if (strncmp(buffer, "!", 2)) {
+                        if (strncmp(buffer, "!", 2) == 0) {
+                            printf("really?\n");
                             endSignalReceived = true;
                         }
                         else {
+                            printf("1\n");
                             int testerPid = strtol(buffer, NULL, 0);
 
+                            printf("2\n");
                             char *msg = (char*) malloc((2 + strlen(strchr(buffer, ':') + 1) + 1) * sizeof(char));
                             ret = sprintf(msg, "A|%s", strchr(buffer, ':') + 1);
                             if (ret < 0) {
                                 syserr("Error in sprintf: ");
                             }
 
+                            printf("3\n");
                             char *resultsQ = (char*) malloc((9 + PIDMAXLEN + 1) * sizeof(char));
                             ret = sprintf(resultsQ, "/results:%d", testerPid);
                             if (ret < 0) {
@@ -139,6 +145,7 @@ int main() {
                                 syserr("Error in sprintf: ");
                             }
 
+                            printf("4\n");
                             mqd_t resultDesc = mq_open(resultsQ, O_WRONLY | O_CREAT, 0777, &attr);
                             if (resultDesc == (mqd_t) -1) {
                                 free(msg);
@@ -146,10 +153,12 @@ int main() {
                                 syserr("Error in mq_open");
                             }
 
+                            printf("5\n");
                             ret = mq_send(resultDesc, msg, strlen(msg) + 1, 1);
                             //free(msg);
                             //free(resultsQ); TODO
                             if (ret) {
+                                printf("6\n");
                                 free(msg);
                                 free(resultsQ);
                                 syserr("Error in mq_send: ");

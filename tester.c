@@ -60,7 +60,7 @@ int main() {
                 if (*word == EOF) {
                     finish = true;
                 }
-                else if (strncmp(word, "!", 2)) {
+                else if (strncmp(word, "!", 2) == 0) {
                     ret = mq_send(validatorDesc, word, strlen(word) + 1, 1);
                     if (ret) {
                         syserr("Error in mq_send: ");
@@ -138,7 +138,7 @@ int main() {
                 printf("Tester(%d): odebrałem %s\n", getpid(), buffer);
 
                 /* end signal received */
-                if (strncmp(buffer, "!", 2)) {
+                if (strncmp(buffer, "!", 2) == 0) {
                     kill(childPid, customSignal);
                     finish = true;
                 }
