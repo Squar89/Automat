@@ -7,11 +7,24 @@
 #include "err.h"
 #include "helper.h"
 
+#include <time.h>//TODO
+
 bool finish = false;
 
 void sigHandler() {
     finish = true;
 }
+
+/* TEMP */
+void waitForRandom () {
+    srand(time(NULL));   // should only be called once
+    unsigned int secs = rand();
+    secs %= 10;
+
+    unsigned int retTime = time(0) + secs;   // Get finishing time.
+    while (time(0) < retTime);               // Loop until it arrives.
+}
+/* TEMP */
 
 int main() {
     char resultsQName[QNAMEMAXLEN];
@@ -51,6 +64,10 @@ int main() {
             while (!finish) {
                 scanf("%s", word);
                 printf("Tester(%d): wczytałem %s\n", getpid(), word);
+                if (*word == '#') {
+                    waitForRandom();
+                    continue;
+                }
 
                 if (feof(stdin)) {
                     finish = true;
