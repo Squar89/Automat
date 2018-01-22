@@ -57,7 +57,7 @@ int main() {
                 scanf("%s", word);
                 printf("Tester(%d): wczytałem %s\n", getpid(), word);
 
-                if (*word == EOF) {
+                if (feof(stdin)) {
                     finish = true;
                 }
                 else if (strncmp(word, "!", 2) == 0) {
