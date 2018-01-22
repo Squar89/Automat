@@ -2,7 +2,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-
 #include "err.h"
 #include "helper.h"
 
@@ -20,7 +19,15 @@ int main() {
     int ret;
     char buffer[MAXLEN];
     const char *tempName = "/tempQ";/*TEMP TODO USUN*/
+    /*const char *qName2 = "/validatorQ";
 
+    if (mq_unlink(tempName)) {
+                        syserr("Error in close:");
+                    }
+    if (mq_unlink(qName2)) {
+                        syserr("Error in close:");
+                    }
+                    return 0;*/
     //forkuj, dziecko odbiera słowa i przekazuje je do run, rodzic odbiera odpowiedzi od run i przekazuje je do testerow
     //gdy dziecko dostanie ! to wysyła ! do run i konczy sie, run wie ze ma sie skonczyc i wysyla ! do glownego i konczy wszystkie pomniejsze run,
     //glowny odbiera ! wypisuje wszystkie raporty i konczy 
@@ -43,21 +50,22 @@ int main() {
                 case 0: /*empty statement */;
                     const char *qName = "/validatorQ";
 
-                    mqd_t desc = mq_open(qName, O_RDONLY | O_CREAT, 0777, NULL);
+                    mqd_t desc = mq_open(qName, O_RDONLY | O_CREAT, 0777, &attr);
                     if (desc == (mqd_t) -1) {
-                        syserr("Error in mq_open");
+                        syserr("Error in mq_open (qName)");
                     }
 
-                    mqd_t tempDesc = mq_open(tempName, O_WRONLY | O_CREAT, 0777, NULL);
+                    mqd_t tempDesc = mq_open(tempName, O_WRONLY | O_CREAT, 0777, &attr);
                     if (tempDesc == (mqd_t) -1) {
-                        syserr("Error in mq_open");
+                        syserr("Error in mq_open (tempName)");
                     }
 
                     while (!endSignalReceived) {
                         /* "pid:word" OR "!" */
+                        //printf("1\n");
                         ret = mq_receive(desc, buffer, MAXLEN, NULL);
                         if (ret < 0) {
-                            syserr("Error in rec: ");
+                            syserr("Error in rec (qName): ");
                         }
 
                         if (strncmp(buffer, "!", 2)) {
@@ -93,9 +101,9 @@ int main() {
 
                 default: /* empty statement */;
                     /* TEMP CODE */
-                    mqd_t tempDesc2 = mq_open(tempName, O_RDONLY | O_CREAT, 0777, NULL);
+                    mqd_t tempDesc2 = mq_open(tempName, O_RDONLY | O_CREAT, 0777, &attr);
                     if (tempDesc2 == (mqd_t) -1) {
-                        syserr("Error in mq_open");
+                        syserr("Error in mq_open (tempName2)");
                     }
 
 
@@ -103,9 +111,14 @@ int main() {
                     while (!endSignalReceived) {
                         /* TEMP CODE */
                         /* "pid:word" OR "!" */
+                        //printf("2\n");
                         ret = mq_receive(tempDesc2, buffer, MAXLEN, NULL);
                         if (ret < 0) {
-                            syserr("Error in rec: ");
+                            struct mq_attr d_attr;
+                            mq_getattr(tempDesc2, &d_attr);
+                            printf("%ld, %ld", MAXLEN, d_attr.mq_msgsize);
+
+                            syserr("Error in rec (tempName): ");
                         }
 
                         if (strncmp(buffer, "!", 2)) {
@@ -128,7 +141,7 @@ int main() {
                                 syserr("Error in sprintf: ");
                             }
 
-                            mqd_t resultDesc = mq_open(resultsQ, O_WRONLY | O_CREAT, 0777, NULL);
+                            mqd_t resultDesc = mq_open(resultsQ, O_WRONLY | O_CREAT, 0777, &attr);
                             if (resultDesc == (mqd_t) -1) {
                                 free(msg);
                                 free(resultsQ);
