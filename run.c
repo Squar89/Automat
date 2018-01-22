@@ -44,7 +44,7 @@ int main() {
     while (true) {
         scanf("%d %c %d", &q, &a, &r);
         while (true) {
-            push(map[q][int(a) - int('a')], r); 
+            push(map[q][(int) a - (int) 'a'], r); 
 
             scanf("%c", &c);
             if (c == '\n' || feof(stdin)) {
@@ -129,7 +129,7 @@ int main() {
 
     for (int i = 0; i < Q + 2; i++) {
         for (int j = 0; j < A + 2; j++) {
-            clear(&map[i][j]);
+            clear(map[i][j]);
         }
         free(map[i]);
     }
