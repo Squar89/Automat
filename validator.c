@@ -19,7 +19,8 @@ int main() {
     bool endSignalReceived = false;
     int ret;
     char buffer[MAXLEN];
-    const char *tempName = "/tempQ";/*TEMP TODO USUN*/
+    const char *queryRunQName = "/queryRunQ";
+    const char *resultRunQName = "/resultRunQ";
 
     //forkuj, dziecko odbiera słowa i przekazuje je do run, rodzic odbiera odpowiedzi od run i przekazuje je do testerow
     //gdy dziecko dostanie ! to wysyła ! do run i konczy sie, run wie ze ma sie skonczyc i wysyla ! do glownego i konczy wszystkie pomniejsze run,
@@ -33,7 +34,6 @@ int main() {
         case 0:
             execl("./run", NULL);
             syserr("Error in exec\n");
-            //exec run //TODO przenies wczytywanie do run, stworz na poczatku proces run, ktory bedzie naczelnikiem dla validator
 
         default:
             switch (fork()) {
@@ -41,7 +41,7 @@ int main() {
                     syserr("Error in fork\n");
                     break;
 
-                case 0: /*empty statement */;
+                case 0: ;
                     const char *qName = "/validatorQ";
 
                     mqd_t desc = mq_open(qName, O_RDONLY | O_CREAT, 0777, &attr);
@@ -49,9 +49,9 @@ int main() {
                         syserr("Error in mq_open (qName)");
                     }
 
-                    mqd_t tempDesc = mq_open(tempName, O_WRONLY | O_CREAT, 0777, &attr);
-                    if (tempDesc == (mqd_t) -1) {
-                        syserr("Error in mq_open (tempName)");
+                    mqd_t runInDesc = mq_open(queryRunQName, O_WRONLY | O_CREAT, 0777, &attr);
+                    if (runInDesc == (mqd_t) -1) {
+                        syserr("Error in mq_open (queryRunQName)");
                     }
 
                     while (!endSignalReceived) {
@@ -64,24 +64,19 @@ int main() {
 
                         if (strncmp(buffer, "!", 2) == 0) {
                             endSignalReceived = true;
-                            //wyślij do run "!" TODO
-                            /* TEMP CODE */
-                            ret = mq_send(tempDesc, buffer, strlen(buffer) + 1, 1);
+
+                            ret = mq_send(runInDesc, buffer, strlen(buffer) + 1, 1);
                             if (ret) {
                                 syserr("Error in mq_send: ");
                             }
-                            printf("Validator: wysłałem %s do validator\n", buffer);
-                            /* TEMP CODE */
+                            printf("Validator: wysłałem %s do run\n", buffer);
                         }
                         else {
-                            //przekaz do run słowo i pid testera TODO
-                            /* TEMP CODE */
-                            ret = mq_send(tempDesc, buffer, strlen(buffer) + 1, 1);
+                            ret = mq_send(runInDesc, buffer, strlen(buffer) + 1, 1);
                             if (ret) {
                                 syserr("Error in mq_send: ");
                             }
-                            printf("Validator: wysłałem %s do validator\n", buffer);
-                            /* TEMP CODE */
+                            printf("Validator: wysłałem %s do run\n", buffer);
                         }
                     }
                     
@@ -89,35 +84,31 @@ int main() {
                         syserr("Error in close:");
                     }
 
-                    if (mq_close(tempDesc)) {
+                    if (mq_close(runInDesc)) {
                         syserr("Error in close:");
                     }                    
 
                     exit(0);
 
-                default: /* empty statement */;
-                    /* TEMP CODE */
-                    mqd_t tempDesc2 = mq_open(tempName, O_RDONLY | O_CREAT, 0777, &attr);
-                    if (tempDesc2 == (mqd_t) -1) {
-                        syserr("Error in mq_open (tempName2)");
+                default:
+                    mqd_t runOutDesc = mq_open(resultRunQName, O_RDONLY | O_CREAT, 0777, &attr);
+                    if (runOutDesc == (mqd_t) -1) {
+                        syserr("Error in mq_open (qName)");
                     }
 
-
-                    /* TEMP CODE */
                     while (!endSignalReceived) {
-                        /* TEMP CODE */
-                        /* "pid:word" OR "!" */
-                        ret = mq_receive(tempDesc2, buffer, MAXLEN, NULL);
+                        /* "A|pid:word" OR "N|pid:word" OR "!" */
+                        ret = mq_receive(runOutDesc, buffer, MAXLEN, NULL);
                         if (ret < 0) {
-                            syserr("Error in rec (tempName): ");
+                            syserr("Error in rec (runOutDesc): ");
                         }
-                        printf("Validator: odebrałem %s od validator\n", buffer);
+                        printf("Validator: odebrałem %s od run\n", buffer);
 
                         if (strncmp(buffer, "!", 2) == 0) {
                             endSignalReceived = true;
                         }
                         else {
-                            int testerPid = strtol(buffer, NULL, 0);
+                            int testerPid = strtol(buffer + 2, NULL, 0);
 
                             char *msg = (char*) malloc((2 + strlen(strchr(buffer, ':') + 1) + 1) * sizeof(char));
                             ret = sprintf(msg, "A|%s", strchr(buffer, ':') + 1);
@@ -156,20 +147,15 @@ int main() {
                                 syserr("Error in close:");
                             }
                         }
-                        /* TEMP CODE */
-                        //odbierz odpowiedz
                         //zaaktualizuj podsumowanie
                         //zaaktualizuj podsumowanie danego testera - potrzebujesz do tego listy testerów, żeby wiedzieć czy zaaktualizować czy dodać nowego
-                        //wyślij odpowiedz dla danego testera
                         //zaaktualizuj liczniki
                         //zaczekaj na run? na koniec zaczekaj na wszystkie runy?
                     }
 
-                    /* TEMP CODE */
-                    if (mq_unlink(tempName)) {
+                    if (mq_unlink(runOutDesc)) {
                         syserr("Error in close:");
                     }
-                    /* TEMP CODE */
             }
     }
 
