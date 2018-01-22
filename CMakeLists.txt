@@ -19,6 +19,3 @@ target_link_libraries(run err helper dArray -lrt)
 target_link_libraries(clear -lrt)
 
 install(TARGETS DESTINATION .)
-
-#copy raport
-#configure_file

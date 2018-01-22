@@ -1,8 +1,7 @@
 #ifndef _VTR_HELPER_
 #define _VTR_HELPER_
 
-#include <stdarg.h>//TODO
-
+#include <stdarg.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <mqueue.h>
