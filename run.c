@@ -4,17 +4,40 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include "dArray.h"
-
 #include "helper.h"
 #include "err.h"
 
 typedef struct Automaton {
     int N; int A; int Q; int U; int F;
     int starting;
-    bool uni[109];
-    bool exi[109];
+    bool acc[109];
     dArray ***map;
 } Automaton;
+
+bool accept(Automaton *automat, char *word, int r) {
+    if (*word == '\0') {
+        return automat->acc[r];
+    }
+
+    if (r >= automat->U) {
+        for (int i = 0; i < size(automat->map[r][(int) *word - 'a']); i++) {
+            if (accept(automat, word + 1, *(automat->array_start + i)) == 1) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+    else {
+        for (int i = 0; i < size(automat->map[r][(int) *word - 'a']); i++) {
+            if (accept(automat, word + 1, *(automat->array_start + i)) == 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
 
 int main() {
     int ret;
@@ -23,6 +46,7 @@ int main() {
     char c, a;
     bool endSignalReceived = false;
     Automaton automat;
+    bool result;
     const char *queryRunQName = "/queryRunQ";
     const char *resultRunQName = "/resultRunQ";
 
@@ -31,12 +55,7 @@ int main() {
     for (int i = 0; i < automat.F; i++) {
         scanf("%d ", &x);
 
-        if (i < automat.U) {
-            automat.uni[x] = 1;
-        }
-        else {
-            automat.exi[x] = 1;
-        }
+        automat.acc[x] = 1;
     }
 
     automat.map = malloc((automat.Q + 2) * sizeof(dArray**));
@@ -99,13 +118,22 @@ int main() {
                     printf("Run: wysłałem %s do validator\n", buffer);
                 }
                 else {
-                    //przetwórz zapytanie TODO
-
+                    result = accept(&automat, buffer, (strchr(buffer, ':') + 1), automat.starting);
 
                     char *msg = (char*) malloc((2 + strlen(buffer) + 1) * sizeof(char));
-                    ret = sprintf(msg, "A|%s", buffer);
-                    if (ret < 0) {
-                        syserr("Error in sprintf: ");
+                    if (result) {
+                        ret = sprintf(msg, "A|%s", buffer);
+                        if (ret < 0) {
+                            free(msg);
+                            syserr("Error in sprintf: ");
+                        }
+                    }
+                    else {
+                        ret = sprintf(msg, "N|%s", buffer);
+                        if (ret < 0) {
+                            free(msg);
+                            syserr("Error in sprintf: ");
+                        }
                     }
 
                     ret = mq_send(runOutDesc, msg, strlen(msg) + 1, 1);
