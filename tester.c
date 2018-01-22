@@ -73,6 +73,7 @@ int main() {
                     finish = true;
                 }
                 else if (strncmp(word, "!", 2) == 0) {
+                    finish = true;
                     ret = mq_send(validatorDesc, word, strlen(word) + 1, 1);
                     if (ret) {
                         syserr("Error in mq_send: ");
@@ -141,7 +142,7 @@ int main() {
             result.received = 0;
             result.sent = -1;
             result.accepted = 0;
-            while (!finish) {
+            while (!finish || result.sent == -1) {
                 /* "A|word" OR "N|word OR "!" OR "sent" */
                 ret = mq_receive(resultsDesc, buffer, MAXLEN, NULL);
                 if (ret < 0) {
