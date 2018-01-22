@@ -12,7 +12,7 @@
 #define QNAMEMAXLEN 20
 #define PIDMAXLEN 8
 
-typedef struct {
+typedef struct summary {
     pid_t subjectPid;
     int received;
     int sent;
