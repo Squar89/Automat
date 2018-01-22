@@ -5,7 +5,6 @@
 #include <wait.h>
 #include "err.h"
 #include "helper.h"
-#include "dArray.h"
 
 int main() {
     summary results[MAXPID];
